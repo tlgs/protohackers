@@ -2,12 +2,10 @@
 
 ## Motivation
 
-- Learn a bit of network programming
+- Mess around a bit with Go and network programming
 - Get some more experience managing resources using AWS
 
 ## Setup
-
-Validate template:
 
 Create stack:
 
