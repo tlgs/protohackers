@@ -52,15 +52,3 @@ Outputs:
   InstanceId:
     Description: "InstanceId of the newly created EC2 instance"
     Value: !Ref EC2Instance
-
-  AZ:
-    Description: "Availability Zone of the newly created EC2 instance"
-    Value: !GetAtt [EC2Instance, AvailabilityZone]
-
-  PublicDNS:
-    Description: "Public DNSName of the newly created EC2 instance"
-    Value: !GetAtt [EC2Instance, PublicDnsName]
-
-  PublicIP:
-    Description: "Public IP address of the newly created EC2 instance"
-    Value: !GetAtt [EC2Instance, PublicIp]
