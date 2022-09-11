@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"io"
@@ -30,8 +31,13 @@ func main() {
 			addr := conn.RemoteAddr()
 			log.Println("accepted connection:", addr)
 
-			_, err := io.Copy(conn, conn)
-			if err != nil {
+			r := io.TeeReader(conn, conn)
+			scanner := bufio.NewScanner(r)
+			for scanner.Scan() {
+				v := scanner.Text()
+				log.Println(v, "⇒", v)
+			}
+			if err := scanner.Err(); err != nil {
 				log.Println(err)
 			}
 
