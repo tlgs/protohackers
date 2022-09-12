@@ -29,19 +29,19 @@ func main() {
 
 		go func(conn net.Conn) {
 			addr := conn.RemoteAddr()
-			log.Println("accepted connection:", addr)
+			log.Println("🏁 accepted connection:", addr)
 
 			r := io.TeeReader(conn, conn)
 			scanner := bufio.NewScanner(r)
 			for scanner.Scan() {
-				v := scanner.Text()
-				log.Println(v, "⇒", v)
+				b := scanner.Bytes()
+				log.Printf("📨 %q", b)
 			}
 			if err := scanner.Err(); err != nil {
 				log.Println(err)
 			}
 
-			log.Println("closing connection:", addr)
+			log.Println("🛑 closing connection:", addr)
 			conn.Close()
 		}(conn)
 	}
