@@ -45,7 +45,7 @@ Resources:
           CidrIp: 0.0.0.0/0
         - IpProtocol: tcp
           FromPort: 10000
-          ToPort: 10000
+          ToPort: 10001
           CidrIp: !Ref CheckerAddr
 
 Outputs:

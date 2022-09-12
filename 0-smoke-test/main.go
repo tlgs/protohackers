@@ -35,7 +35,7 @@ func main() {
 			scanner := bufio.NewScanner(r)
 			for scanner.Scan() {
 				b := scanner.Bytes()
-				log.Printf("📨 %q", b)
+				log.Printf("📨 %#q", b)
 			}
 			if err := scanner.Err(); err != nil {
 				log.Println(err)
