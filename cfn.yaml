@@ -30,9 +30,16 @@ Resources:
         - {"Key": "Name", "Value": "protohackers-box"}
       UserData:
         Fn::Base64: |
-          #!/bin/bash -xe
-          apt update && apt -y upgrade
-          apt install -y golang
+          #cloud-config
+          package_update: true
+          package_upgrade: true
+          packages: [golang]
+          runcmd:
+            - [runuser, -c, 'GOBIN=$HOME/bin go install github.com/tlgs/protohackers/...@latest', ubuntu]
+            - [runuser, -c, 'mkdir $HOME/log', ubuntu]
+            - [runuser, -c, 'nohup $HOME/bin/0-smoke-test >$HOME/log/0.log 2>&1 &', ubuntu]
+            - [runuser, -c, 'nohup $HOME/bin/1-prime-time >$HOME/log/1.log 2>&1 &', ubuntu]
+            - [runuser, -c, 'nohup $HOME/bin/2-means-to-an-end >$HOME/log/2.log 2>&1 &', ubuntu]
 
   InstanceSecurityGroup:
     Type: "AWS::EC2::SecurityGroup"
@@ -43,9 +50,10 @@ Resources:
           FromPort: 22
           ToPort: 22
           CidrIp: 0.0.0.0/0
+
         - IpProtocol: tcp
           FromPort: 10000
-          ToPort: 10001
+          ToPort: 10002
           CidrIp: !Ref CheckerAddr
 
 Outputs:
