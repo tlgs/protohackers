@@ -16,33 +16,33 @@ func main() {
 
 	ln, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%v", *port))
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalln("error:", err)
 	}
 
-	log.Println("listening on port", *port)
+	log.Println("🚀 listening on port", *port)
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
-			log.Println(err)
+			log.Println("error:", err)
 			continue
 		}
 
 		go func(conn net.Conn) {
 			addr := conn.RemoteAddr()
-			log.Println("🏁 accepted connection:", addr)
+			log.Println(addr, "accepted connection")
 
 			r := io.TeeReader(conn, conn)
 			scanner := bufio.NewScanner(r)
 			for scanner.Scan() {
 				b := scanner.Bytes()
-				log.Printf("📨 %#q", b)
+				log.Printf("%v echo: %#q", addr, b)
 			}
 			if err := scanner.Err(); err != nil {
-				log.Println(err)
+				log.Println(addr, "error:", err)
 			}
 
-			log.Println("🛑 closing connection:", addr)
 			conn.Close()
+			log.Println(addr, "closing connection")
 		}(conn)
 	}
 }
