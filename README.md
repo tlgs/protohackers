@@ -5,7 +5,7 @@ Solutions to the [Protohackers server programming challenge](https://protohacker
 ## Motivation
 
 - Mess around a bit with Go and network programming
-- Get some more experience managing resources using AWS
+- Get some more experience managing AWS resources
 
 ## Setup
 
@@ -19,7 +19,9 @@ Create stack:
 aws cloudformation create-stack \
   --stack-name protohackers \
   --template-body file://cfn.yaml \
-  --parameters ParameterKey=KeyName,ParameterValue="$EC2_KEY"
+  --parameters \
+    ParameterKey=KeyName,ParameterValue="$EC2_KEY" \
+    ParameterKey=CheckerAddr,ParameterValue="$CHECKER_ADDR"
 ```
 
 Delete stack:

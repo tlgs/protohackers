@@ -1,7 +1,7 @@
 ---
 AWSTemplateFormatVersion: "2010-09-09"
 
-Description: "t2.micro EC2 instance running Ubuntu 22.04 for the Protohackers challenge"
+Description: "Protohackers challenge - t2.micro (Ubuntu 22.04)"
 
 Parameters:
   KeyName:
@@ -14,7 +14,6 @@ Parameters:
     Type: "String"
     MinLength: 9
     MaxLength: 18
-    Default: "206.189.113.124/32"
     AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
     ConstraintDescription: "Must be a valid IP CIDR range of the form x.x.x.x/x"
 
@@ -31,20 +30,19 @@ Resources:
       UserData:
         Fn::Base64: |
           #cloud-config
+
           package_update: true
           package_upgrade: true
+
           packages: [golang]
+
           runcmd:
-            - [runuser, -c, 'GOBIN=$HOME/bin go install github.com/tlgs/protohackers/...@latest', ubuntu]
-            - [runuser, -c, 'mkdir $HOME/log', ubuntu]
-            - [runuser, -c, 'nohup $HOME/bin/0-smoke-test >$HOME/log/0.log 2>&1 &', ubuntu]
-            - [runuser, -c, 'nohup $HOME/bin/1-prime-time >$HOME/log/1.log 2>&1 &', ubuntu]
-            - [runuser, -c, 'nohup $HOME/bin/2-means-to-an-end >$HOME/log/2.log 2>&1 &', ubuntu]
+            - [runuser, -c, 'git clone https://github.com/tlgs/protohackers $HOME/protohackers', ubuntu]
 
   InstanceSecurityGroup:
     Type: "AWS::EC2::SecurityGroup"
     Properties:
-      GroupDescription: "Enable SSH (22), and application port (10000) to Protohackers checker"
+      GroupDescription: "Enable SSH (22), and application ports (1000x) to the Protohackers checker"
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 22
