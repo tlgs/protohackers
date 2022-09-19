@@ -43,8 +43,13 @@ func handle(conn net.Conn) {
 		log.Printf("%v received: %#q", addr, in)
 
 		out := protocol(in)
-		log.Printf("%v sent: %#q", addr, out[:len(out)-1])
-		conn.Write(out)
+
+		_, err := conn.Write(out)
+		if err != nil {
+			log.Println(addr, "error:", err)
+		} else {
+			log.Printf("%v sent: %#q", addr, out[:len(out)-1])
+		}
 	}
 	if err := scanner.Err(); err != nil {
 		log.Println(addr, "error:", err)

@@ -50,8 +50,12 @@ func handle(conn net.Conn) {
 			out := make([]byte, 4)
 			binary.BigEndian.PutUint32(out, uint32(avg))
 
-			conn.Write(out)
-			log.Println(addr, "sent:", out)
+			_, err := conn.Write(out)
+			if err != nil {
+				log.Println(addr, "error:", err)
+			} else {
+				log.Println(addr, "sent:", out)
+			}
 		}
 	}
 

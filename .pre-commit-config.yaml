@@ -14,3 +14,8 @@ repos:
       - id: cfn-python-lint
         name: lint aws cloudformation templates
         exclude: '\.pre-commit-config.yaml'
+
+  - repo: https://github.com/golangci/golangci-lint
+    rev: v1.49.0
+    hooks:
+      - id: golangci-lint
