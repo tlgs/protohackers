@@ -30,14 +30,14 @@ Delete stack:
 aws cloudformation delete-stack --stack-name protohackers
 ```
 
-Get the ID of the created EC2 instance:
+Get the Public DNS name of the created EC2 instance:
 
 ```bash
-aws cloudformation describe-stacks \
+aws ec2 describe-instances \
   | jq -r '
-      .Stacks[]
-      | select(.StackName == "protohackers").Outputs[]
-      | select(.OutputKey == "InstanceId").OutputValue
+      .Reservations[].Instances[]
+      | select(.Tags[] | .Key == "aws:cloudformation:stack-name" and .Value == "protohackers")
+      | .NetworkInterfaces[].Association.PublicDnsName
     '
 ```
 
@@ -65,15 +65,4 @@ aws ec2 stop-instances --instance-ids $(
         | select(.OutputKey == "InstanceId").OutputValue
       '
 )
-```
-
-Get the Public DNS name from the created EC2 instance:
-
-```bash
-aws ec2 describe-instances \
-  | jq -r '
-      .Reservations[].Instances[]
-      | select(.Tags[] | .Key == "aws:cloudformation:stack-name" and .Value == "protohackers")
-      | .NetworkInterfaces[].Association.PublicDnsName
-    '
 ```
