@@ -21,7 +21,7 @@ type message struct {
 }
 
 func isValidUsername(username string) bool {
-	if len(username) < 1 {
+	if len(username) < 1 || len(username) > 16 {
 		return false
 	}
 
@@ -44,6 +44,7 @@ func handle(conn net.Conn, ch chan message) {
 	conn.Write([]byte("Welcome to budgetchat! What shall I call you?\n"))
 
 	scanner := bufio.NewScanner(conn)
+
 	scanner.Scan()
 	in := scanner.Text()
 
@@ -70,8 +71,7 @@ func handle(conn net.Conn, ch chan message) {
 	msg := fmt.Sprintf("* The room contains: %s\n", strings.Join(existingUsers, ", "))
 	conn.Write([]byte(msg))
 
-	inCh := make(chan string, 5) // this being buffered is a bandaid
-	defer close(inCh)
+	inCh := make(chan string)
 
 	// add user
 	users.mux.Lock()
@@ -105,6 +105,8 @@ func handle(conn net.Conn, ch chan message) {
 			conn.Write([]byte(v))
 		}
 	}
+
+	close(inCh)
 
 	users.mux.Lock()
 	delete(users.m, in)
