@@ -35,33 +35,28 @@ func isValidUsername(username string) bool {
 }
 
 func handle(conn net.Conn, ch chan message) {
+	defer conn.Close()
+
 	addr := conn.RemoteAddr()
 	log.Println(addr, "accepted connection")
+	defer log.Println(addr, "closed connection")
 
 	conn.Write([]byte("Welcome to budgetchat! What shall I call you?\n"))
 
 	scanner := bufio.NewScanner(conn)
 	scanner.Scan()
 	in := scanner.Text()
-	log.Println(addr, fmt.Sprintf("%q tried to connect", in))
 
+	// check if username exists
 	users.mux.Lock()
-	_, ok := users.m[in]
+	_, exists := users.m[in]
 	users.mux.Unlock()
 
-	if ok {
-		log.Panicln(addr, "user already exists with this username")
-
-		conn.Close()
-		log.Println(addr, "closed connection")
+	if exists {
+		log.Println(addr, "username already taken", in)
 		return
-	}
-
-	if !isValidUsername(in) {
+	} else if !isValidUsername(in) {
 		log.Println(addr, "bad username:", in)
-
-		conn.Close()
-		log.Println(addr, "closed connection")
 		return
 	}
 
@@ -75,14 +70,17 @@ func handle(conn net.Conn, ch chan message) {
 	msg := fmt.Sprintf("* The room contains: %s\n", strings.Join(existingUsers, ", "))
 	conn.Write([]byte(msg))
 
-	inCh := make(chan string, 5)
+	inCh := make(chan string, 5) // this being buffered is a bandaid
+	defer close(inCh)
+
+	// add user
 	users.mux.Lock()
 	users.m[in] = inCh
 	users.mux.Unlock()
+
 	ch <- message{in, fmt.Sprintf("* %v has entered the room\n", in)}
 
 	scannerChan := make(chan string)
-	quit := make(chan bool)
 	go func() {
 		for scanner.Scan() {
 			scannerChan <- scanner.Text()
@@ -92,22 +90,19 @@ func handle(conn net.Conn, ch chan message) {
 		}
 
 		close(scannerChan)
-		quit <- true
 	}()
 
 	for flag := true; flag; {
 		select {
-		case v := <-scannerChan:
-			// not sure what's up with this...
-			if len(v) == 0 {
+		case v, ok := <-scannerChan:
+			if !ok {
+				flag = false
 				break
 			}
 
 			ch <- message{in, fmt.Sprintf("[%v] %v\n", in, v)}
 		case v := <-inCh:
 			conn.Write([]byte(v))
-		case <-quit:
-			flag = false
 		}
 	}
 
@@ -115,11 +110,7 @@ func handle(conn net.Conn, ch chan message) {
 	delete(users.m, in)
 	users.mux.Unlock()
 
-	conn.Close()
-	log.Println(addr, "closed connection")
-
 	ch <- message{in, fmt.Sprintf("* %v has left the room\n", in)}
-	close(inCh)
 }
 
 var port = flag.Int("p", 10003, "port to listen on")
