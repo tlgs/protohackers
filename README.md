@@ -2,16 +2,13 @@
 
 Solutions to the [Protohackers server programming challenge](https://protohackers.com/).
 
-## Motivation
-
-- Mess around a bit with Go and network programming
-- Get some more experience managing AWS resources
+Hosting the server on AWS (see the [CloudFormation template](cfn.yaml)).
 
 ## Setup
 
 `go build -o build/ ./...`
 
-### AWS CLI recipes
+## Development
 
 Create stack:
 
