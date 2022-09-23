@@ -16,17 +16,20 @@ type ingressRequest struct {
 	errc     chan error
 }
 
+type egressRequest string
+
 type message struct {
 	sender, content string
 }
 
 type Coordinator struct {
 	ingress   chan ingressRequest
-	egress    chan string
+	egress    chan egressRequest
 	broadcast chan message
 }
 
 func (c *Coordinator) loop() {
+	validUsername := regexp.MustCompile(`^[[:alnum:]]{1,16}$`)
 	users := make(map[string]chan string)
 	for {
 		select {
@@ -35,7 +38,7 @@ func (c *Coordinator) loop() {
 			if _, exists := users[req.username]; exists {
 				req.errc <- fmt.Errorf("requested username is taken")
 				break
-			} else if !isValidUsername(req.username) {
+			} else if match := validUsername.MatchString(req.username); !match {
 				req.errc <- fmt.Errorf("invalid username")
 				break
 			}
@@ -53,25 +56,21 @@ func (c *Coordinator) loop() {
 			req.ch <- fmt.Sprintf("* The room contains: %v\n", strings.Join(existingUsers, ", "))
 
 		case username := <-c.egress:
-			delete(users, username)
+			// remove user and announce departure
+			delete(users, string(username))
 			for _, ch := range users {
 				ch <- fmt.Sprintf("* %v has left the room\n", username)
 			}
 
-		case m := <-c.broadcast:
+		case msg := <-c.broadcast:
 			for name, ch := range users {
-				if m.sender == name {
+				if msg.sender == name {
 					continue
 				}
-				ch <- fmt.Sprintf("[%v] %v\n", m.sender, m.content)
+				ch <- fmt.Sprintf("[%v] %v\n", msg.sender, msg.content)
 			}
 		}
 	}
-}
-
-func isValidUsername(s string) bool {
-	matched, _ := regexp.MatchString(`^[[:alnum:]]{1,16}$`, s)
-	return matched
 }
 
 func handle(conn net.Conn, c Coordinator) {
@@ -84,9 +83,9 @@ func handle(conn net.Conn, c Coordinator) {
 		log.Println(addr, "closed connection")
 	}()
 
+	// greet user and capture requested username
 	conn.Write([]byte("Welcome to budgetchat! What shall I call you?\n"))
 
-	// first scanned line is the requested username of the client
 	scanner := bufio.NewScanner(conn)
 	scanner.Scan()
 	username := scanner.Text()
@@ -100,7 +99,7 @@ func handle(conn net.Conn, c Coordinator) {
 		return
 	}
 
-	// setup a goroutine
+	// setup a goroutine to capture user messages
 	sch := make(chan string)
 	go func() {
 		for scanner.Scan() {
@@ -109,17 +108,17 @@ func handle(conn net.Conn, c Coordinator) {
 		close(sch)
 	}()
 
+	// main loop: send messages to user, or broadcast a message
 	for {
 		select {
 		case v := <-inc:
 			conn.Write([]byte(v))
 		case s, ok := <-sch:
-			if ok {
-				c.broadcast <- message{username, s}
-			} else {
-				c.egress <- username
+			if !ok {
+				c.egress <- egressRequest(username)
 				return
 			}
+			c.broadcast <- message{username, s}
 		}
 	}
 }
@@ -136,7 +135,7 @@ func main() {
 
 	coordinator := &Coordinator{
 		ingress:   make(chan ingressRequest),
-		egress:    make(chan string),
+		egress:    make(chan egressRequest),
 		broadcast: make(chan message),
 	}
 	go coordinator.loop()
