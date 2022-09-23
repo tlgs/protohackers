@@ -6,117 +6,125 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"regexp"
 	"strings"
-	"sync"
 )
 
-type userChannel struct {
-	mux sync.Mutex
-	m   map[string]chan string
+type ingressRequest struct {
+	username string
+	ch       chan string
+	errc     chan error
 }
 
 type message struct {
-	sender  string
-	content string
+	sender, content string
 }
 
-func isValidUsername(username string) bool {
-	if len(username) < 1 || len(username) > 16 {
-		return false
-	}
-
-	for _, c := range username {
-		if !(('A' <= c && c <= 'Z') || ('a' <= c && c <= 'z') || ('0' <= c && c <= '9')) {
-			return false
-		}
-	}
-
-	return true
+type Coordinator struct {
+	ingress   chan ingressRequest
+	egress    chan string
+	broadcast chan message
 }
 
-func handle(conn net.Conn, ch chan message) {
-	defer conn.Close()
-
-	addr := conn.RemoteAddr()
-	log.Println(addr, "accepted connection")
-	defer log.Println(addr, "closed connection")
-
-	conn.Write([]byte("Welcome to budgetchat! What shall I call you?\n"))
-
-	scanner := bufio.NewScanner(conn)
-
-	scanner.Scan()
-	in := scanner.Text()
-
-	// check if username exists
-	users.mux.Lock()
-	_, exists := users.m[in]
-	users.mux.Unlock()
-
-	if exists {
-		log.Println(addr, "username already taken", in)
-		return
-	} else if !isValidUsername(in) {
-		log.Println(addr, "bad username:", in)
-		return
-	}
-
-	var existingUsers []string
-	users.mux.Lock()
-	for k := range users.m {
-		existingUsers = append(existingUsers, k)
-	}
-	users.mux.Unlock()
-
-	msg := fmt.Sprintf("* The room contains: %s\n", strings.Join(existingUsers, ", "))
-	conn.Write([]byte(msg))
-
-	inCh := make(chan string)
-
-	// add user
-	users.mux.Lock()
-	users.m[in] = inCh
-	users.mux.Unlock()
-
-	ch <- message{in, fmt.Sprintf("* %v has entered the room\n", in)}
-
-	scannerChan := make(chan string)
-	go func() {
-		for scanner.Scan() {
-			scannerChan <- scanner.Text()
-		}
-		if err := scanner.Err(); err != nil {
-			log.Println(addr, "error:", err)
-		}
-
-		close(scannerChan)
-	}()
-
-	for flag := true; flag; {
+func (c *Coordinator) loop() {
+	users := make(map[string]chan string)
+	for {
 		select {
-		case v, ok := <-scannerChan:
-			if !ok {
-				flag = false
+		case req := <-c.ingress:
+			// validate username
+			if _, exists := users[req.username]; exists {
+				req.errc <- fmt.Errorf("requested username is taken")
+				break
+			} else if !isValidUsername(req.username) {
+				req.errc <- fmt.Errorf("invalid username")
 				break
 			}
 
-			ch <- message{in, fmt.Sprintf("[%v] %v\n", in, v)}
-		case v := <-inCh:
-			conn.Write([]byte(v))
+			// announce user, and collect existing users
+			var existingUsers []string
+			for name, ch := range users {
+				ch <- fmt.Sprintf("* %v has entered the room\n", req.username)
+				existingUsers = append(existingUsers, name)
+			}
+
+			// register user and list pre-existing users' names
+			users[req.username] = req.ch
+			req.errc <- nil
+			req.ch <- fmt.Sprintf("* The room contains: %v\n", strings.Join(existingUsers, ", "))
+
+		case username := <-c.egress:
+			delete(users, username)
+			for _, ch := range users {
+				ch <- fmt.Sprintf("* %v has left the room\n", username)
+			}
+
+		case m := <-c.broadcast:
+			for name, ch := range users {
+				if m.sender == name {
+					continue
+				}
+				ch <- fmt.Sprintf("[%v] %v\n", m.sender, m.content)
+			}
 		}
 	}
+}
 
-	close(inCh)
+func isValidUsername(s string) bool {
+	matched, _ := regexp.MatchString(`^[[:alnum:]]{1,16}$`, s)
+	return matched
+}
 
-	users.mux.Lock()
-	delete(users.m, in)
-	users.mux.Unlock()
+func handle(conn net.Conn, c Coordinator) {
+	addr := conn.RemoteAddr()
+	log.Println(addr, "accepted connection")
 
-	ch <- message{in, fmt.Sprintf("* %v has left the room\n", in)}
+	// cleanup in case we bail early
+	defer func() {
+		conn.Close()
+		log.Println(addr, "closed connection")
+	}()
+
+	conn.Write([]byte("Welcome to budgetchat! What shall I call you?\n"))
+
+	// first scanned line is the requested username of the client
+	scanner := bufio.NewScanner(conn)
+	scanner.Scan()
+	username := scanner.Text()
+
+	// attempt to join the chat room
+	inc := make(chan string)
+	errc := make(chan error)
+	c.ingress <- ingressRequest{username, inc, errc}
+	if err := <-errc; err != nil {
+		log.Printf("%v %s: %v", addr, err, username)
+		return
+	}
+
+	// setup a goroutine
+	sch := make(chan string)
+	go func() {
+		for scanner.Scan() {
+			sch <- scanner.Text()
+		}
+		close(sch)
+	}()
+
+	for {
+		select {
+		case v := <-inc:
+			conn.Write([]byte(v))
+		case s, ok := <-sch:
+			if ok {
+				c.broadcast <- message{username, s}
+			} else {
+				c.egress <- username
+				return
+			}
+		}
+	}
 }
 
 var port = flag.Int("p", 10003, "port to listen on")
-var users = userChannel{m: make(map[string]chan string)}
 
 func main() {
 	flag.Parse()
@@ -126,20 +134,12 @@ func main() {
 		log.Fatalln("error:", err)
 	}
 
-	broadcast := make(chan message)
-	go func() {
-		for {
-			m := <-broadcast
-			users.mux.Lock()
-			for username, ch := range users.m {
-				if username == m.sender {
-					continue
-				}
-				ch <- m.content
-			}
-			users.mux.Unlock()
-		}
-	}()
+	coordinator := &Coordinator{
+		ingress:   make(chan ingressRequest),
+		egress:    make(chan string),
+		broadcast: make(chan message),
+	}
+	go coordinator.loop()
 
 	log.Println("🚀 listening on port", *port)
 	for {
@@ -149,6 +149,6 @@ func main() {
 			continue
 		}
 
-		go handle(conn, broadcast)
+		go handle(conn, *coordinator)
 	}
 }
