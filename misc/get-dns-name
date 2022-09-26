@@ -1,0 +1,8 @@
+#!/bin/bash
+
+aws ec2 describe-instances \
+  | jq -r '
+      .Reservations[].Instances[]
+      | select(.Tags[] | .Key == "aws:cloudformation:stack-name" and .Value == "protohackers")
+      | .NetworkInterfaces[].Association.PublicDnsName
+    '

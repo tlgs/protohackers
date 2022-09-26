@@ -2,64 +2,25 @@
 
 Solutions to the [Protohackers server programming challenge](https://protohackers.com/).
 
-Hosting the server on AWS (see the [CloudFormation template](cfn.yaml)).
-
 ## Setup
 
-`go build -o build/ ./...`
+`go build -o bin ./...`
 
-## Development
+## Deployment
 
-Create stack:
+The server is deployed/hosted on AWS: see the [CloudFormation template](misc/cfn.yaml).
 
-```bash
-aws cloudformation create-stack \
-  --stack-name protohackers \
-  --template-body file://cfn.yaml \
-  --parameters \
-    ParameterKey=KeyName,ParameterValue="$EC2_KEY" \
-    ParameterKey=CheckerAddr,ParameterValue="$CHECKER_ADDR"
-```
-
-Delete stack:
+A useful collection of tiny Bash scripts is defined in `misc/`.
+These can be automatically loaded into the current shell by using
+[direnv](https://github.com/direnv/direnv) and a `.envrc` file like:
 
 ```bash
-aws cloudformation delete-stack --stack-name protohackers
-```
+export AWS_ACCESS_KEY_ID=
+export AWS_SECRET_ACCESS_KEY=
+export AWS_DEFAULT_REGION=
 
-Get the Public DNS name of the created EC2 instance:
+export EC2_KEYNAME=
+export CHECKER_ADDR=
 
-```bash
-aws ec2 describe-instances \
-  | jq -r '
-      .Reservations[].Instances[]
-      | select(.Tags[] | .Key == "aws:cloudformation:stack-name" and .Value == "protohackers")
-      | .NetworkInterfaces[].Association.PublicDnsName
-    '
-```
-
-Start instance:
-
-```bash
-aws ec2 start-instances --instance-ids $(
-  aws cloudformation describe-stacks \
-    | jq -r '
-        .Stacks[]
-        | select(.StackName == "protohackers").Outputs[]
-        | select(.OutputKey == "InstanceId").OutputValue
-      '
-)
-```
-
-Stop instance:
-
-```bash
-aws ec2 stop-instances --instance-ids $(
-  aws cloudformation describe-stacks \
-    | jq -r '
-        .Stacks[]
-        | select(.StackName == "protohackers").Outputs[]
-        | select(.OutputKey == "InstanceId").OutputValue
-      '
-)
+PATH_add misc
 ```

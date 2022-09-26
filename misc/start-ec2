@@ -1,0 +1,12 @@
+#!/bin/bash
+
+instance_id=$(
+  aws cloudformation describe-stacks \
+  | jq -r '
+      .Stacks[]
+      | select(.StackName == "protohackers").Outputs[]
+      | select(.OutputKey == "InstanceId").OutputValue
+    '
+)
+
+aws ec2 start-instances --instance-ids "$instance_id"
