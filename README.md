@@ -11,7 +11,7 @@ Solutions to the [Protohackers server programming challenge](https://protohacker
 The server is deployed/hosted on AWS: see the
 [CloudFormation template](internal/deploy/cfn.yaml).
 
-A useful collection of tiny Bash scripts is defined in `misc/`.
+A useful collection of tiny Bash scripts is defined in `internal/deploy/`.
 These can be automatically loaded into the current shell by using
 [direnv](https://github.com/direnv/direnv) and a `.envrc` file like:
 
