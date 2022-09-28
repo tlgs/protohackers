@@ -4,7 +4,7 @@ Solutions to the [Protohackers server programming challenge](https://protohacker
 
 ## Setup
 
-`go build -o bin ./...`
+`mkdir -p bin && go build -o bin ./...`
 
 ## Deployment
 
