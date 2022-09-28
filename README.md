@@ -8,7 +8,8 @@ Solutions to the [Protohackers server programming challenge](https://protohacker
 
 ## Deployment
 
-The server is deployed/hosted on AWS: see the [CloudFormation template](misc/cfn.yaml).
+The server is deployed/hosted on AWS: see the
+[CloudFormation template](internal/deploy/cfn.yaml).
 
 A useful collection of tiny Bash scripts is defined in `misc/`.
 These can be automatically loaded into the current shell by using
@@ -22,5 +23,5 @@ export AWS_DEFAULT_REGION=
 export EC2_KEYNAME=
 export CHECKER_ADDR=
 
-PATH_add misc
+PATH_add internal/deploy
 ```
