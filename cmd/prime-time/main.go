@@ -8,11 +8,10 @@ import (
 	"math"
 	"net"
 
-	"github.com/tlgs/protohackers/internal/cli"
-	"github.com/tlgs/protohackers/internal/server"
+	"github.com/tlgs/protohackers/internal/service"
 )
 
-type PrimeTime struct{}
+type PrimeTime struct{ *service.Config }
 
 func (s PrimeTime) Setup() context.Context {
 	return context.TODO()
@@ -76,12 +75,14 @@ func (s PrimeTime) Handle(_ context.Context, conn net.Conn) {
 		if _, err = conn.Write(out); err != nil {
 			log.Printf("%v (%v)", err, addr)
 		} else {
-			log.Printf("%#q => %#q (%v)", in, out, addr)
+			log.Printf("%#q ⇒ %#q (%v)", in, out[:len(out)-1], addr)
 		}
 	}
 }
 
 func main() {
-	config := cli.Parse()
-	server.Run(PrimeTime{}, config.Port)
+	cfg := service.NewConfig(10001)
+	cfg.ParseFlags()
+
+	service.Run(PrimeTime{cfg})
 }

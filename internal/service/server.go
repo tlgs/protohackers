@@ -1,4 +1,4 @@
-package server
+package service
 
 import (
 	"context"
@@ -7,19 +7,23 @@ import (
 	"net"
 )
 
-type PHServer interface {
+type Server interface {
+	Configuration
+
 	Setup() context.Context
 	Handle(ctx context.Context, conn net.Conn)
 }
 
-func Run(s PHServer, port int) {
-	ctx := s.Setup()
+func Run(s Server) {
+	port := s.Port()
+
 	ln, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%v", port))
 	if err != nil {
 		log.Fatalln(err)
 	}
-
 	log.Println("🚀 listening on port", port)
+
+	ctx := s.Setup()
 	for {
 		conn, err := ln.Accept()
 		if err != nil {

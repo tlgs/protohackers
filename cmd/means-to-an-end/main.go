@@ -7,11 +7,10 @@ import (
 	"log"
 	"net"
 
-	"github.com/tlgs/protohackers/internal/cli"
-	"github.com/tlgs/protohackers/internal/server"
+	"github.com/tlgs/protohackers/internal/service"
 )
 
-type MeansToAnEnd struct{}
+type MeansToAnEnd struct{ *service.Config }
 
 func (s MeansToAnEnd) Setup() context.Context {
 	return context.TODO()
@@ -63,7 +62,7 @@ func (s MeansToAnEnd) Handle(_ context.Context, conn net.Conn) {
 			if _, err := conn.Write(out); err != nil {
 				log.Printf("%v (%v)", err, addr)
 			} else {
-				log.Printf("query: %v %v => %v (%v)", fst, snd, out, addr)
+				log.Printf("query: %v %v ⇒ %v (%v)", fst, snd, out, addr)
 			}
 
 		default:
@@ -73,6 +72,8 @@ func (s MeansToAnEnd) Handle(_ context.Context, conn net.Conn) {
 }
 
 func main() {
-	config := cli.Parse()
-	server.Run(MeansToAnEnd{}, config.Port)
+	cfg := service.NewConfig(10002)
+	cfg.ParseFlags()
+
+	service.Run(MeansToAnEnd{cfg})
 }
