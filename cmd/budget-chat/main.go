@@ -50,7 +50,10 @@ func Coordinator(room Room) {
 			msg := "* " + s.Username + " has entered the room\n"
 			log.Print(msg)
 			for name, conn := range sessions {
-				conn.Write([]byte(msg))
+				if _, err := conn.Write([]byte(msg)); err != nil {
+					log.Printf("%s (%v)", err, conn.RemoteAddr())
+				}
+
 				users = append(users, name)
 			}
 
@@ -58,7 +61,9 @@ func Coordinator(room Room) {
 			s.errc <- nil
 
 			msg = "* The room contains: " + strings.Join(users, ", ") + "\n"
-			s.Conn.Write([]byte(msg))
+			if _, err := s.Conn.Write([]byte(msg)); err != nil {
+				log.Printf("%s (%v)", err, s.Conn.RemoteAddr())
+			}
 
 		case u := <-room.Egress:
 			delete(sessions, u)
@@ -66,15 +71,21 @@ func Coordinator(room Room) {
 			msg := "* " + u + " has left the room\n"
 			log.Print(msg)
 			for _, conn := range sessions {
-				conn.Write([]byte(msg))
+				if _, err := conn.Write([]byte(msg)); err != nil {
+					log.Printf("%s (%v)", err, conn.RemoteAddr())
+				}
 			}
 
 		case m := <-room.Messages:
 			msg := "[" + m.Sender + "] " + m.Content + "\n"
 			log.Print(msg)
 			for name, conn := range sessions {
-				if name != m.Sender {
-					conn.Write([]byte(msg))
+				if name == m.Sender {
+					continue
+				}
+
+				if _, err := conn.Write([]byte(msg)); err != nil {
+					log.Printf("%s (%v)", err, conn.RemoteAddr())
 				}
 			}
 		}
@@ -105,7 +116,10 @@ func (s BudgetChat) Handle(ctx context.Context, conn net.Conn) {
 		log.Printf("closed connection: %v", addr)
 	}()
 
-	conn.Write([]byte("Welcome to budgetchat! What shall I call you?\n"))
+	msg := "Welcome to budgetchat! What shall I call you?\n"
+	if _, err := conn.Write([]byte(msg)); err != nil {
+		log.Printf("%s (%v)", err, addr)
+	}
 
 	r := ctx.Value(ctxKey("room")).(Room)
 

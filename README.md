@@ -10,10 +10,12 @@ Solutions to the [Protohackers server programming challenge](https://protohacker
 
 The server is deployed/hosted on AWS: see the
 [CloudFormation template](internal/deploy/cfn.yaml).
+Additionally, a useful collection of tiny Bash scripts
+is defined in `internal/deploy`.
 
-A useful collection of tiny Bash scripts is defined in `internal/deploy/`.
-These can be automatically loaded into the current shell by using
-[direnv](https://github.com/direnv/direnv) and a `.envrc` file like:
+I typically use [direnv](https://github.com/direnv/direnv) to set
+project-relevant environment variables and add helper utilities to PATH.
+My `.envrc` looks something like:
 
 ```bash
 export AWS_ACCESS_KEY_ID=
