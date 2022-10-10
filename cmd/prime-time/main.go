@@ -8,14 +8,14 @@ import (
 	"math"
 	"net"
 
-	"github.com/tlgs/protohackers/internal/service"
+	"github.com/tlgs/protohackers/internal/protohackers"
 )
 
-type PrimeTime struct{ *service.Config }
+type PrimeTime struct{ *protohackers.Config }
 
-func (s PrimeTime) Setup() context.Context {
-	return context.TODO()
-}
+func (s PrimeTime) Protocol() string { return "tcp" }
+
+func (s PrimeTime) Setup() context.Context { return context.TODO() }
 
 type Request struct {
 	Method string   `json:"method"`
@@ -81,8 +81,8 @@ func (s PrimeTime) Handle(_ context.Context, conn net.Conn) {
 }
 
 func main() {
-	cfg := service.NewConfig(service.TCP, 10001)
+	cfg := protohackers.NewConfig(10001)
 	cfg.ParseFlags()
 
-	service.Run(PrimeTime{cfg})
+	protohackers.Run(PrimeTime{cfg})
 }

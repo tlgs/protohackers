@@ -7,14 +7,14 @@ import (
 	"log"
 	"net"
 
-	"github.com/tlgs/protohackers/internal/service"
+	"github.com/tlgs/protohackers/internal/protohackers"
 )
 
-type MeansToAnEnd struct{ *service.Config }
+type MeansToAnEnd struct{ *protohackers.Config }
 
-func (s MeansToAnEnd) Setup() context.Context {
-	return context.TODO()
-}
+func (s MeansToAnEnd) Protocol() string { return "tcp" }
+
+func (s MeansToAnEnd) Setup() context.Context { return context.TODO() }
 
 func (s MeansToAnEnd) Handle(_ context.Context, conn net.Conn) {
 	addr := conn.RemoteAddr()
@@ -72,8 +72,8 @@ func (s MeansToAnEnd) Handle(_ context.Context, conn net.Conn) {
 }
 
 func main() {
-	cfg := service.NewConfig(service.TCP, 10002)
+	cfg := protohackers.NewConfig(10002)
 	cfg.ParseFlags()
 
-	service.Run(MeansToAnEnd{cfg})
+	protohackers.Run(MeansToAnEnd{cfg})
 }

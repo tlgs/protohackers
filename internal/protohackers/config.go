@@ -1,16 +1,8 @@
-package service
+package protohackers
 
 import "flag"
 
-type Protocol int
-
-const (
-	TCP Protocol = iota
-	UDP
-)
-
 type Configuration interface {
-	Protocol() Protocol
 	Port() int
 
 	ParseFlags()
@@ -18,20 +10,15 @@ type Configuration interface {
 
 // Config is the standard implementation of the Configuration interface
 type Config struct {
-	protocol Protocol
-	port     int
+	port int
 }
 
-func NewConfig(protocol Protocol, defaultPort int) *Config {
-	return &Config{protocol: protocol, port: defaultPort}
+func NewConfig(defaultPort int) *Config {
+	return &Config{port: defaultPort}
 }
 
 func (cfg *Config) Port() int {
 	return cfg.port
-}
-
-func (cfg *Config) Protocol() Protocol {
-	return cfg.protocol
 }
 
 func (cfg *Config) ParseFlags() {

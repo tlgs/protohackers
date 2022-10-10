@@ -6,14 +6,14 @@ import (
 	"log"
 	"net"
 
-	"github.com/tlgs/protohackers/internal/service"
+	"github.com/tlgs/protohackers/internal/protohackers"
 )
 
-type SmokeTest struct{ *service.Config }
+type SmokeTest struct{ *protohackers.Config }
 
-func (s SmokeTest) Setup() context.Context {
-	return context.TODO()
-}
+func (s SmokeTest) Protocol() string { return "tcp" }
+
+func (s SmokeTest) Setup() context.Context { return context.TODO() }
 
 func (s SmokeTest) Handle(_ context.Context, conn net.Conn) {
 	defer conn.Close()
@@ -24,8 +24,8 @@ func (s SmokeTest) Handle(_ context.Context, conn net.Conn) {
 }
 
 func main() {
-	cfg := service.NewConfig(service.TCP, 10000)
+	cfg := protohackers.NewConfig(10000)
 	cfg.ParseFlags()
 
-	service.Run(SmokeTest{cfg})
+	protohackers.Run(SmokeTest{cfg})
 }

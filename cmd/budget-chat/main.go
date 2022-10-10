@@ -9,10 +9,12 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/tlgs/protohackers/internal/service"
+	"github.com/tlgs/protohackers/internal/protohackers"
 )
 
-type BudgetChat struct{ *service.Config }
+type BudgetChat struct{ *protohackers.Config }
+
+func (s BudgetChat) Protocol() string { return "tcp" }
 
 type Session struct {
 	Username string
@@ -148,8 +150,8 @@ func (s BudgetChat) Handle(ctx context.Context, conn net.Conn) {
 }
 
 func main() {
-	cfg := service.NewConfig(service.TCP, 10003)
+	cfg := protohackers.NewConfig(10003)
 	cfg.ParseFlags()
 
-	service.Run(BudgetChat{cfg})
+	protohackers.Run(BudgetChat{cfg})
 }

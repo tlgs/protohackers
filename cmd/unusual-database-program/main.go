@@ -7,14 +7,14 @@ import (
 	"net"
 	"strings"
 
-	"github.com/tlgs/protohackers/internal/service"
+	"github.com/tlgs/protohackers/internal/protohackers"
 )
 
-type UnusualDatabaseProgram struct{ *service.Config }
+type UnusualDatabaseProgram struct{ *protohackers.Config }
 
-func (s UnusualDatabaseProgram) Setup() context.Context {
-	return context.TODO()
-}
+func (s UnusualDatabaseProgram) Protocol() string { return "udp" }
+
+func (s UnusualDatabaseProgram) Setup() context.Context { return context.TODO() }
 
 func (s UnusualDatabaseProgram) Handle(_ context.Context, conn net.Conn) {
 	defer conn.Close()
@@ -57,8 +57,8 @@ func (s UnusualDatabaseProgram) Handle(_ context.Context, conn net.Conn) {
 }
 
 func main() {
-	cfg := service.NewConfig(service.UDP, 10004)
+	cfg := protohackers.NewConfig(10004)
 	cfg.ParseFlags()
 
-	service.Run(UnusualDatabaseProgram{cfg})
+	protohackers.Run(UnusualDatabaseProgram{cfg})
 }
