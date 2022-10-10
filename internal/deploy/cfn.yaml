@@ -51,7 +51,12 @@ Resources:
 
         - IpProtocol: tcp
           FromPort: 10000
-          ToPort: 10003
+          ToPort: 10004
+          CidrIp: !Ref CheckerAddr
+
+        - IpProtocol: udp
+          FromPort: 10000
+          ToPort: 10004
           CidrIp: !Ref CheckerAddr
 
 Outputs:

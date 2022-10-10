@@ -17,20 +17,41 @@ type Server interface {
 func Run(s Server) {
 	port := s.Port()
 
-	ln, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%v", port))
-	if err != nil {
-		log.Fatalln(err)
-	}
-	log.Println("🚀 listening on port", port)
-
 	ctx := s.Setup()
-	for {
-		conn, err := ln.Accept()
+
+	switch s.Protocol() {
+	case TCP:
+		ln, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%v", port))
 		if err != nil {
-			log.Println(err)
-			continue
+			log.Fatal(err)
+		}
+		log.Println("🚀 listening for TCP connections on port", port)
+
+		for {
+			conn, err := ln.Accept()
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+
+			go s.Handle(ctx, conn)
 		}
 
-		go s.Handle(ctx, conn)
+	case UDP:
+		addr, err := net.ResolveUDPAddr("udp", fmt.Sprintf("0.0.0.0:%v", port))
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		conn, err := net.ListenUDP("udp", addr)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Println("🚀 listening for UDP connections on port", port)
+
+		s.Handle(ctx, conn)
+
+	default:
+		log.Fatal("unkown protocol")
 	}
 }
