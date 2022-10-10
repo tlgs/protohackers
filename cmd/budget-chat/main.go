@@ -137,7 +137,6 @@ func (s BudgetChat) Handle(ctx context.Context, conn net.Conn) {
 		defer func() {
 			r.Egress <- username
 		}()
-
 	} else {
 		log.Printf("no username provided (%v)", addr)
 		return
@@ -149,7 +148,7 @@ func (s BudgetChat) Handle(ctx context.Context, conn net.Conn) {
 }
 
 func main() {
-	cfg := service.NewConfig(10003)
+	cfg := service.NewConfig(service.TCP, 10003)
 	cfg.ParseFlags()
 
 	service.Run(BudgetChat{cfg})

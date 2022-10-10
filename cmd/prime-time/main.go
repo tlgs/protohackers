@@ -81,7 +81,7 @@ func (s PrimeTime) Handle(_ context.Context, conn net.Conn) {
 }
 
 func main() {
-	cfg := service.NewConfig(10001)
+	cfg := service.NewConfig(service.TCP, 10001)
 	cfg.ParseFlags()
 
 	service.Run(PrimeTime{cfg})

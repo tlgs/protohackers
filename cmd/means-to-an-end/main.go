@@ -72,7 +72,7 @@ func (s MeansToAnEnd) Handle(_ context.Context, conn net.Conn) {
 }
 
 func main() {
-	cfg := service.NewConfig(10002)
+	cfg := service.NewConfig(service.TCP, 10002)
 	cfg.ParseFlags()
 
 	service.Run(MeansToAnEnd{cfg})

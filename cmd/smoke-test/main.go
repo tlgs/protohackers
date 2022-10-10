@@ -24,7 +24,7 @@ func (s SmokeTest) Handle(_ context.Context, conn net.Conn) {
 }
 
 func main() {
-	cfg := service.NewConfig(10000)
+	cfg := service.NewConfig(service.TCP, 10000)
 	cfg.ParseFlags()
 
 	service.Run(SmokeTest{cfg})
