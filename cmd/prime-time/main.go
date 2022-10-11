@@ -13,9 +13,7 @@ import (
 
 type PrimeTime struct{ *protohackers.Config }
 
-func (s PrimeTime) Protocol() string { return "tcp" }
-
-func (s PrimeTime) Setup() context.Context { return context.TODO() }
+func (PrimeTime) Setup() context.Context { return context.TODO() }
 
 type Request struct {
 	Method string   `json:"method"`
@@ -43,7 +41,7 @@ func isPrime(n int) bool {
 	return true
 }
 
-func (s PrimeTime) Handle(_ context.Context, conn net.Conn) {
+func (PrimeTime) Handle(_ context.Context, conn net.Conn) {
 	addr := conn.RemoteAddr()
 	log.Printf("accepted connection: %v", addr)
 
@@ -84,5 +82,5 @@ func main() {
 	cfg := protohackers.NewConfig(10001)
 	cfg.ParseFlags()
 
-	protohackers.Run(PrimeTime{cfg})
+	protohackers.RunTCP(PrimeTime{cfg})
 }

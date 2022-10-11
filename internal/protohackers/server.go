@@ -10,12 +10,14 @@ import (
 type Server interface {
 	Configuration
 
-	Protocol() string
 	Setup() context.Context
 	Handle(ctx context.Context, conn net.Conn)
 }
 
-func tcpService(s Server) {
+// RunTCP implements the setup, listen, and accept loop steps for a
+// Server intended to use the TCP protocol.
+// Each TCP connection is handled by an individual goroutine.
+func RunTCP(s Server) {
 	port := s.Port()
 
 	addr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("0.0.0.0:%v", port))
@@ -40,7 +42,18 @@ func tcpService(s Server) {
 	}
 }
 
-func udpService(s Server) {
+// RunUDP implements the setup, and listen steps for a Server intended
+// to use the UDP protocol.
+//
+// Because UDP is a connectionless protocol, each packet needs to be handled
+// individually and it (probably) doesn't make much sense to spin up a goroutine
+// for each arriving piece of data.
+// As it stands, the current design is limited to handle each
+// received packet sequentially in the program's main thread.
+// If a future problem necessitates it, it should be easy to create a
+// pool of N goroutines that share the *UDPConn object and can handle the
+// incoming data concurrently.
+func RunUDP(s Server) {
 	port := s.Port()
 
 	addr, err := net.ResolveUDPAddr("udp", fmt.Sprintf("0.0.0.0:%v", port))
@@ -56,15 +69,4 @@ func udpService(s Server) {
 
 	ctx := s.Setup()
 	s.Handle(ctx, conn)
-}
-
-func Run(s Server) {
-	switch s.Protocol() {
-	case "tcp":
-		tcpService(s)
-	case "udp":
-		udpService(s)
-	default:
-		log.Fatal("unknown protocol")
-	}
 }

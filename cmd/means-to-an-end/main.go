@@ -12,11 +12,9 @@ import (
 
 type MeansToAnEnd struct{ *protohackers.Config }
 
-func (s MeansToAnEnd) Protocol() string { return "tcp" }
+func (MeansToAnEnd) Setup() context.Context { return context.TODO() }
 
-func (s MeansToAnEnd) Setup() context.Context { return context.TODO() }
-
-func (s MeansToAnEnd) Handle(_ context.Context, conn net.Conn) {
+func (MeansToAnEnd) Handle(_ context.Context, conn net.Conn) {
 	addr := conn.RemoteAddr()
 	log.Printf("accepted connection (%v)", addr)
 
@@ -75,5 +73,5 @@ func main() {
 	cfg := protohackers.NewConfig(10002)
 	cfg.ParseFlags()
 
-	protohackers.Run(MeansToAnEnd{cfg})
+	protohackers.RunTCP(MeansToAnEnd{cfg})
 }

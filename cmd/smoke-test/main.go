@@ -11,11 +11,9 @@ import (
 
 type SmokeTest struct{ *protohackers.Config }
 
-func (s SmokeTest) Protocol() string { return "tcp" }
+func (SmokeTest) Setup() context.Context { return context.TODO() }
 
-func (s SmokeTest) Setup() context.Context { return context.TODO() }
-
-func (s SmokeTest) Handle(_ context.Context, conn net.Conn) {
+func (SmokeTest) Handle(_ context.Context, conn net.Conn) {
 	defer conn.Close()
 
 	if _, err := io.Copy(conn, conn); err != nil {
@@ -27,5 +25,5 @@ func main() {
 	cfg := protohackers.NewConfig(10000)
 	cfg.ParseFlags()
 
-	protohackers.Run(SmokeTest{cfg})
+	protohackers.RunTCP(SmokeTest{cfg})
 }

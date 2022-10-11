@@ -14,8 +14,6 @@ import (
 
 type BudgetChat struct{ *protohackers.Config }
 
-func (s BudgetChat) Protocol() string { return "tcp" }
-
 type Session struct {
 	Username string
 	Conn     net.Conn
@@ -96,7 +94,7 @@ func Coordinator(room Room) {
 
 type ctxKey string
 
-func (s BudgetChat) Setup() context.Context {
+func (BudgetChat) Setup() context.Context {
 	room := Room{
 		Ingress:  make(chan Session),
 		Egress:   make(chan string),
@@ -110,7 +108,7 @@ func (s BudgetChat) Setup() context.Context {
 	return ctx
 }
 
-func (s BudgetChat) Handle(ctx context.Context, conn net.Conn) {
+func (BudgetChat) Handle(ctx context.Context, conn net.Conn) {
 	addr := conn.RemoteAddr()
 	log.Printf("accepted connection: %v", addr)
 	defer func() {
@@ -153,5 +151,5 @@ func main() {
 	cfg := protohackers.NewConfig(10003)
 	cfg.ParseFlags()
 
-	protohackers.Run(BudgetChat{cfg})
+	protohackers.RunTCP(BudgetChat{cfg})
 }

@@ -12,11 +12,9 @@ import (
 
 type UnusualDatabaseProgram struct{ *protohackers.Config }
 
-func (s UnusualDatabaseProgram) Protocol() string { return "udp" }
+func (UnusualDatabaseProgram) Setup() context.Context { return context.TODO() }
 
-func (s UnusualDatabaseProgram) Setup() context.Context { return context.TODO() }
-
-func (s UnusualDatabaseProgram) Handle(_ context.Context, conn net.Conn) {
+func (UnusualDatabaseProgram) Handle(_ context.Context, conn net.Conn) {
 	defer conn.Close()
 
 	udpConn, ok := conn.(*net.UDPConn)
@@ -60,5 +58,5 @@ func main() {
 	cfg := protohackers.NewConfig(10004)
 	cfg.ParseFlags()
 
-	protohackers.Run(UnusualDatabaseProgram{cfg})
+	protohackers.RunUDP(UnusualDatabaseProgram{cfg})
 }
