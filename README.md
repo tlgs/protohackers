@@ -1,24 +1,17 @@
 # protohackers
 
-Solutions to the [Protohackers server programming challenges](https://protohackers.com/):
+Solutions to the [Protohackers](https://protohackers.com/) server programming challenges:
 
 0. [Smoke Test](cmd/smoke-test/main.go) -
-   Simple TCP based echo service from
-   [RFC 862](https://www.rfc-editor.org/rfc/rfc862.html).
-
+   Echo service from [RFC 862](https://www.rfc-editor.org/rfc/rfc862.html) (TCP).
 1. [Prime Time](cmd/prime-time/main.go) -
-   Primality testing service using a JSON-based response-request protocol.
-   TCP connections.
-
+   Primality testing service using a JSON-based response-request protocol (TCP).
 2. [Means to an End](cmd/means-to-an-end/main.go) -
-   Asset price tracking and querying service using a binary message format.
-   TCP connections.
-
+   Asset price tracking service using a binary message format (TCP).
 3. [Budget Chat](cmd/budget-chat/main.go) -
-   Simple TCP based chat room.
-
+   Simple chat room (TCP).
 4. [Unusual Database Program](cmd/unusual-database-program/main.go) -
-   Key-value store acessed over UDP.
+   Key-value store (UDP).
 
 ## Setup
 
