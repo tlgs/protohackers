@@ -12,6 +12,8 @@ Solutions to the [Protohackers](https://protohackers.com/) server programming ch
    Simple chat room (TCP).
 4. [Unusual Database Program](cmd/unusual-database-program/main.go) -
    Key-value store (UDP).
+5. [Mob in the Middle](cmd/mob-in-the-middle/main.go) -
+   Man-in-the-middle attack on _Budget Chat_ (TCP).
 
 ## Setup
 
