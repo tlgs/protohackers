@@ -2,10 +2,10 @@
 
 instance_id=$(
   aws cloudformation describe-stacks \
-  | jq -r '
-      .Stacks[]
-      | select(.StackName == "protohackers").Outputs[]
-      | select(.OutputKey == "InstanceId").OutputValue
+    | jq -r '
+        .Stacks[]
+        | select(.StackName == "protohackers").Outputs[]
+        | select(.OutputKey == "InstanceId").OutputValue
     '
 )
 

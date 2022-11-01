@@ -9,13 +9,24 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/aws-cloudformation/cfn-python-lint
-    rev: v0.64.1
+    rev: v0.70.0
     hooks:
       - id: cfn-python-lint
         name: lint aws cloudformation [cfn-python-lint]
         exclude: '\.pre-commit-config.yaml'
 
   - repo: https://github.com/golangci/golangci-lint
-    rev: v1.49.0
+    rev: v1.50.1
     hooks:
       - id: golangci-lint
+
+  - repo: https://github.com/koalaman/shellcheck-precommit
+    rev: v0.8.0
+    hooks:
+      - id: shellcheck
+
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.5.1-1
+    hooks:
+      - id: shfmt
+        args: ['-w', '-i=2', '-ci', '-bn']

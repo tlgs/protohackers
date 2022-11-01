@@ -6,5 +6,5 @@ aws cloudformation create-stack \
   --stack-name protohackers \
   --template-body file://cfn.yaml \
   --parameters \
-    ParameterKey=KeyName,ParameterValue="$EC2_KEYNAME" \
-    ParameterKey=CheckerAddr,ParameterValue="$CHECKER_ADDR"
+  ParameterKey=KeyName,ParameterValue="$EC2_KEYNAME" \
+  ParameterKey=CheckerAddr,ParameterValue="$CHECKER_ADDR"
